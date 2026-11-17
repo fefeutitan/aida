@@ -2,17 +2,17 @@
 
 Artificial Intelligent Document Analyzer.
 
-O AIDA analisa documentos PDF para uso futuro em fluxos de IA generativa e RAG. Nesta etapa, a aplicação oferece gestão de documentos, armazenamento local, extração de texto com PDFBox e persistência de metadados. Embeddings, RAG, OCR e chamadas a modelos ainda não fazem parte desta etapa.
+AIDA analyzes PDF documents for future use in generative AI and RAG workflows. At this stage, the application provides document management, local storage, text extraction with PDFBox, and metadata persistence. Embeddings, RAG, OCR, and model calls are not part of this stage yet.
 
-## Pré-requisitos
+## Prerequisites
 
 - JDK 21
-- Maven 3.9+ (ou `mvnw.cmd`, se o wrapper estiver funcional no ambiente)
-- Docker Desktop com Docker Compose
+- Maven 3.9+ (or `mvnw.cmd`, if the wrapper works in your environment)
+- Docker Desktop with Docker Compose
 
-## Executar o PostgreSQL
+## Run PostgreSQL
 
-No PowerShell, a partir da raiz do projeto:
+From the project root, in PowerShell:
 
 ```powershell
 Copy-Item .env.example .env
@@ -20,9 +20,9 @@ docker compose up -d postgres
 docker compose ps
 ```
 
-O banco fica disponível em `127.0.0.1:5433`, e as migrações Flyway habilitam a extensão `vector` e criam a tabela `documents` quando a aplicação inicia.
+The database is available at `127.0.0.1:5433`. Flyway migrations enable the `vector` extension and create the `documents` table when the application starts.
 
-## Executar a aplicação
+## Run the application
 
 ```powershell
 $env:DB_URL = "jdbc:postgresql://127.0.0.1:5433/aida"
@@ -32,32 +32,32 @@ $env:OPENAI_API_KEY = ""
 mvn spring-boot:run
 ```
 
-Verificações úteis:
+Useful checks:
 
 ```powershell
 Invoke-WebRequest http://localhost:8080/actuator/health
 Start-Process http://localhost:8080/swagger-ui.html
 ```
 
-## Gestão de documentos PDF
+## PDF document management
 
-O limite padrão de upload é 10 MB. O diretório de armazenamento pode ser alterado com `AIDA_STORAGE_LOCATION` e, por padrão, é `./data/documents`.
+The default upload limit is 10 MB. The storage directory can be changed with `AIDA_STORAGE_LOCATION`; the default is `./data/documents`.
 
-Enviar um PDF:
+Upload a PDF:
 
 ```powershell
 Invoke-RestMethod -Method Post `
   -Uri http://localhost:8080/api/v1/documents `
-  -Form @{ file = Get-Item .\exemplo.pdf }
+  -Form @{ file = Get-Item .\example.pdf }
 ```
 
-Listar documentos:
+List documents:
 
 ```powershell
 Invoke-RestMethod "http://localhost:8080/api/v1/documents?page=0&size=20"
 ```
 
-Consultar ou excluir um documento:
+Retrieve or delete a document:
 
 ```powershell
 $id = "00000000-0000-0000-0000-000000000000"
@@ -65,19 +65,19 @@ Invoke-RestMethod "http://localhost:8080/api/v1/documents/$id"
 Invoke-RestMethod -Method Delete "http://localhost:8080/api/v1/documents/$id"
 ```
 
-O arquivo físico recebe um nome baseado em UUID e o nome original não é usado como caminho. A resposta da API contém somente metadados; o texto extraído não é exposto integralmente.
+Each physical file receives a UUID-based name, and the original filename is never used as a filesystem path. API responses contain metadata only; the full extracted text is not exposed.
 
-## Build e testes
+## Build and tests
 
 ```powershell
 mvn dependency:resolve
 mvn clean verify
 ```
 
-Os testes unitários cobrem a extração PDFBox, o serviço e o controller. O teste de contexto usa Testcontainers, executa as migrações Flyway e verifica a extensão `vector` e a tabela `documents`. Docker deve estar em execução para os testes de integração. Nenhum teste faz chamadas reais à OpenAI.
+Unit tests cover PDFBox extraction, the document service, and the controller. The context test uses Testcontainers, runs Flyway migrations, and verifies the `vector` extension and `documents` table. Docker must be running for integration tests. No test makes real OpenAI calls.
 
-Limitações atuais: não há OCR para PDFs escaneados, embeddings, indexação vetorial ou RAG.
+Current limitations: no OCR for scanned PDFs, embeddings, vector indexing, or RAG.
 
-## Estrutura modular
+## Modular structure
 
-Os pacotes reservados são `document`, `ingestion`, `question` e `shared`, sob `com.fehell.aida`. Eles permanecem sem classes artificiais até que cada funcionalidade seja aprovada e implementada.
+The reserved packages are `document`, `ingestion`, `question`, and `shared`, under `com.fehell.aida`. They should remain free of artificial classes until each feature is approved and implemented.
