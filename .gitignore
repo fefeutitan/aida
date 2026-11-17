@@ -1,5 +1,6 @@
 HELP.md
 target/
+data/
 aida-error.log
 aida-startup.log
 .mvn/wrapper/maven-wrapper.jar
